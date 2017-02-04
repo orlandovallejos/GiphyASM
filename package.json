@@ -1,0 +1,19 @@
+{
+  "name": "giphy",
+  "version": "1.0.0",
+  "description": "Search for images",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/orlandovallejos/GiphyASM.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/orlandovallejos/GiphyASM/issues"
+  },
+  "homepage": "https://github.com/orlandovallejos/GiphyASM#readme",
+  "dependencies": {
+    "angular": "^1.6.1",
+    "bootstrap": "^3.3.7"
+  }
+}
