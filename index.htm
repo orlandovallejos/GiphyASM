@@ -35,14 +35,13 @@
           <h1 class="cover-heading">Giphy finder</h1>
           <div class="row">
             <div class="col-lg-12">
-              <div class="input-group">
-                <input type="text" class="form-control" placeholder="Search for...">
-                <span class="input-group-btn">
-                <button class="btn btn-default" type="button">Go</button>
-              </span>
-              </div>
+              <asm-search-bar data-search="vm.searchGIF()" data-query="vm.query"></asm-search-bar>
+              <asm-search-results data-items="vm.searchResults" data-change-page="vm.changePage(pageNumber)"></asm-search-results>
             </div>
           </div>
+
+          <h3>Trending Giphies</h3>
+          <asm-trending-results data-items-cant="10"></asm-trending-results>
         </div>
 
         <div class="mastfoot">
