@@ -40,7 +40,8 @@
             'urlTrending': 'http://api.giphy.com/v1/gifs/trending?',
             'apiKey': 'dc6zaTOxFJmzC',
             'limitSearch': 10,
-            'limitTrending': 10
+            'limitTrending': 10,
+            'pagesInFooter': 5
         });
 })();
 
@@ -209,43 +210,17 @@
         var vm = this;
 
         //Variables
-        vm.trendingResults = {};
-        vm.query = '';
+        vm.mySearch = {
+            query: '',
+            currentPage: 0
+        };
 
         activate();
 
         //Methods
-        vm.searchGIF = searchGIF;
-        vm.changePage = changePage;
 
         //Method definitions
         function activate() {
-        }
-
-        function searchGIF() {
-            var opt = {
-                q: vm.query
-            };
-
-            GiphyService.search(opt)
-                .then(function (response) {
-                    vm.searchResults = response;
-                })
-                .catch(CommonService.errorHandler);
-        }
-
-        function changePage(pageNumber) {
-            console.log('Change page from controller');
-            var opt = {
-                q: vm.query,
-                offset: pageNumber * 10
-            };
-
-            GiphyService.search(opt)
-                .then(function (response) {
-                    vm.searchResults = response;
-                })
-                .catch(CommonService.errorHandler);
         }
 
         //Functions
@@ -275,17 +250,50 @@
         var directive = {
             restrict: 'E',
             scope: {
-                search: '&',
-                query: '='
+                search: '='
             },
+            controller: ['$scope', 'GiphyService', 'CommonService', 'CONFIG', function ($scope, GiphyService, CommonService, CONFIG) {
+                $scope.$watch('search.currentPage', function () {
+                    //Perform search when the current page changes.
+                    if ($scope.currentPage === 0 || !$scope.search.query) {
+                        return;
+                    }
+
+                    var opt = {
+                        q: $scope.search.query,
+                        offset: $scope.search.currentPage * CONFIG.limitSearch
+                    };
+
+                    GiphyService.search(opt)
+                        .then(function (response) {
+                            $scope.search.results = response;
+                        })
+                        .catch(CommonService.errorHandler);
+                });
+
+                $scope.execute = function (search) {
+                    if (search.query) {
+                        var opt = {
+                            q: $scope.search.query,
+                            offset: 0
+                        };
+                        GiphyService.search(opt)
+                            .then(function (response) {
+                                search.results = response;
+                                search.currentPage = 0;
+                            });
+                    }
+                };
+            }],
             template:
             '<div class="input-group">' +
-            '   <input type="text" class="form-control" ng-model="query" placeholder="Search for...">' +
+            '   <input type="text" class="form-control" ng-model="search.query" placeholder="Search for...">' +
             '   <span class="input-group-btn">' +
-            '       <button class="btn btn-default" type="button" ng-click="search()">Go</button>' +
+            '       <button class="btn btn-default" type="button" ng-click="execute(search)">Go</button>' +
             '   </span>' +
             '</div>'
         };
+
         return directive;
     }
 })();
@@ -303,58 +311,52 @@
         var directive = {
             restrict: 'E',
             scope: {
-                items: '=',
-                changePage: '&'
+                search: '='
             },
-            controller: ['$scope', function ($scope) {
+            controller: ['$scope', 'CONFIG', function ($scope, CONFIG) {
 
                 function init() {
-                    //$scope.items = angular.copy($scope.items);
                     $scope.paginationVisible = false;
-                    $scope.pagesPerGroup = 5;
-                    $scope.currentPage = 1;
+                    $scope.pagesPerGroup = CONFIG.pagesInFooter;
                     $scope.pages = [];
                     $scope.previousEnabled = false;
                     $scope.nextEnabled = false;
 
-                    $scope.$watch('items', setupPages);
+                    $scope.$watch('search.results', setupPages);
                 }
 
                 init();
 
                 $scope.changePagination = function (pageNumber) {
-                    $scope.currentPage = pageNumber;
-                    $scope.changePage({ pageNumber: (pageNumber - 1) });
+                    $scope.search.currentPage = pageNumber;
                 };
 
                 $scope.changePaginationGroupPrevious = function () {
                     var currentGroup = getCurrentGroup();
                     currentGroup--;
-                    $scope.currentPage = ((currentGroup) * $scope.pagesPerGroup) + 1;
-                    $scope.changePage({ pageNumber: ($scope.currentPage - 1) });
+                    $scope.search.currentPage = ((currentGroup) * $scope.pagesPerGroup);
 
                     setupPages();
                 };
 
                 $scope.changePaginationGroupNext = function () {
                     var currentGroup = getCurrentGroup();
-                    $scope.currentPage = ((currentGroup + 1) * $scope.pagesPerGroup) + 1;
-                    $scope.changePage({ pageNumber: ($scope.currentPage - 1) });
+                    $scope.search.currentPage = ((currentGroup + 1) * $scope.pagesPerGroup);
 
                     setupPages();
                 };
 
                 function setupPages() {
-                    if (!$scope.items) {
+                    if (!$scope.search.results || ($scope.search.results.images && $scope.search.results.images.length === 0)) {
                         $scope.paginationVisible = false;
                         return;
                     }
 
                     $scope.paginationVisible = true;
-                    var cantPageGroups = parseInt($scope.items.pagination.total_count / $scope.items.pagination.count);
+                    var cantPageGroups = parseInt($scope.search.results.pagination.total_count / $scope.search.results.pagination.count);
 
                     var currentGroup = getCurrentGroup();
-                    var startPage = (currentGroup * $scope.pagesPerGroup) + 1,
+                    var startPage = (currentGroup * $scope.pagesPerGroup),
                         endPage = startPage + $scope.pagesPerGroup;
 
                     $scope.pages = [];
@@ -365,7 +367,7 @@
                         if (i < cantPageGroups) {
                             var page = {
                                 number: i,
-                                active: (i === $scope.currentPage)
+                                active: (i === $scope.search.currentPage)
                             };
 
                             $scope.pages.push(page);
@@ -375,21 +377,20 @@
                             break;
                         }
                     }
-
-                    console.log($scope.pages);
                 }
 
-                function getCurrentGroup(){
-                    return parseInt(($scope.currentPage - 1) / $scope.pagesPerGroup);
+                function getCurrentGroup() {
+                    return parseInt($scope.search.currentPage / $scope.pagesPerGroup);
                 }
             }],
-            template: '<div class="row">' +
-            '    <div class="col-md-4" ng-repeat="item in items.images">' +
+            template:
+            '<div class="row">' +
+            '    <div class="col-md-4" ng-repeat="item in search.results.images">' +
             '        <img ng-src="{{item}}" class="img-responsive" alt="Responsive image">' +
             '    </div>' +
             '</div>' +
 
-            '<nav aria-label="Search results pages" ng-show="paginationVisible">' +
+            '<nav aria-label="Search results search.pages" ng-show="paginationVisible">' +
             '    <ul class="pagination">' +
             '        <li ng-class="{disabled: !previousEnabled}">' +
             '            <a href="#" aria-label="Previous" ng-click="previousEnabled && changePaginationGroupPrevious()">' +
@@ -397,7 +398,7 @@
             '            </a>' +
             '        </li>' +
             '        <li ng-repeat="page in pages" ng-class="{active: page.active}">' +
-            '           <a href="#" ng-click="changePagination(page.number)">{{page.number}}</a>' +
+            '           <a href="#" ng-click="changePagination(page.number)">{{page.number + 1}}</a>' +
             '        </li>' +
             '        <li ng-class="{disabled: !nextEnabled}">' +
             '            <a href="#" aria-label="Next" ng-click="nextEnabled && changePaginationGroupNext()">' +
