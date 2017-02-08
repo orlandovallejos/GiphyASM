@@ -1,0 +1,23 @@
+<div class="row">
+    <div class="col-md-4" ng-repeat="item in search.results.images">
+        <img ng-src="{{item}}" class="img-responsive" alt="Responsive image">
+    </div>
+</div>
+
+<nav aria-label="Search results search.pages" ng-show="paginationVisible">
+    <ul class="pagination">
+        <li ng-class="{disabled: !previousEnabled}">
+            <a href="#" aria-label="Previous" ng-click="previousEnabled && changePaginationGroupPrevious()">
+                <span aria-hidden="true">&laquo;</span>
+            </a>
+        </li>
+        <li ng-repeat="page in pages" ng-class="{active: page.active}">
+            <a href="#" ng-click="changePagination(page.number)">{{page.number  1}}</a>
+        </li>
+        <li ng-class="{disabled: !nextEnabled}">
+            <a href="#" aria-label="Next" ng-click="nextEnabled && changePaginationGroupNext()">
+                <span aria-hidden="true">&raquo;</span>
+            </a>
+        </li>
+    </ul>
+</nav>
