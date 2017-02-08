@@ -86,7 +86,9 @@
             template:
             '<div class="row">' +
             '    <div class="col-md-4" ng-repeat="item in search.results.images">' +
+            '       <a ng-href="{{item}}" target="_blank">' +
             '        <img ng-src="{{item}}" class="img-responsive" alt="Responsive image">' +
+            '       </a>' +
             '    </div>' +
             '</div>' +
 
