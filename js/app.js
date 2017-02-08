@@ -14,37 +14,11 @@
 
     angular
         .module('giphyasm', [
-            'giphyasm.constants',
-            'giphyasm.services',
-            'giphyasm.home',
-            'giphyasm.search'
+            'giphyasm.configuration',
+            'giphyasm.giphy',
+            'giphyasm.home'
         ]);
 })();
-
-// APP CONSTANTS
-// ----------------------------------- 
-(function () {
-    'use strict';
-
-    angular
-        .module('giphyasm.constants', []);
-})();
-
-(function () {
-    'use strict';
-
-    angular
-        .module('giphyasm.constants')
-        .constant('CONFIG', {
-            'urlSearch': 'http://api.giphy.com/v1/gifs/search?',
-            'urlTrending': 'http://api.giphy.com/v1/gifs/trending?',
-            'apiKey': 'dc6zaTOxFJmzC',
-            'limitSearch': 10,
-            'limitTrending': 10,
-            'pagesInFooter': 5
-        });
-})();
-
 
 // APP SERVICES
 // ----------------------------------- 
@@ -52,17 +26,34 @@
     'use strict';
 
     angular
-        .module('giphyasm.services', [
-            'giphyasm.constants',
-            'giphyasm.common'
+        .module('giphyasm.giphy', [
+            'giphyasm.configuration'
         ]);
 })();
 
+// APP CONFIGURATION
+// ----------------------------------- 
 (function () {
     'use strict';
 
     angular
-        .module('giphyasm.services')
+        .module('giphyasm.configuration', []);
+})();
+// Home Module
+// ----------------------------------- 
+(function () {
+    'use strict';
+
+    angular
+        .module('giphyasm.home', [
+            'giphyasm.configuration'
+        ]);
+})();
+(function () {
+    'use strict';
+
+    angular
+        .module('giphyasm.giphy')
         .factory('GiphyService', GiphyService);
 
     GiphyService.$inject = ['$http', 'CONFIG', 'CommonService'];
@@ -151,24 +142,11 @@
         }
     }
 })();
-
-
-
-// APP SERVICES
-// ----------------------------------- 
 (function () {
     'use strict';
 
     angular
-        .module('giphyasm.common', [
-        ]);
-})();
-
-(function () {
-    'use strict';
-
-    angular
-        .module('giphyasm.common')
+        .module('giphyasm.configuration')
         .factory('CommonService', CommonService);
 
     CommonService.$inject = ['$log'];
@@ -185,63 +163,25 @@
         }
     }
 })();
-
-// Main Controller
-// ----------------------------------- 
 (function () {
     'use strict';
 
     angular
-        .module('giphyasm.home', [
-            'giphyasm.constants',
-            'giphyasm.common'
-        ]);
+        .module('giphyasm.configuration')
+        .constant('CONFIG', {
+            'urlSearch': 'http://api.giphy.com/v1/gifs/search?',
+            'urlTrending': 'http://api.giphy.com/v1/gifs/trending?',
+            'apiKey': 'dc6zaTOxFJmzC',
+            'limitSearch': 10,
+            'limitTrending': 10,
+            'pagesInFooter': 5
+        });
 })();
-
 (function () {
     'use strict';
 
     angular
         .module('giphyasm.home')
-        .controller('MainController', MainController);
-
-    MainController.$inject = ['GiphyService', 'CommonService'];
-    function MainController(GiphyService, CommonService) {
-        var vm = this;
-
-        //Variables
-        vm.mySearch = {
-            query: '',
-            currentPage: 0
-        };
-
-        activate();
-
-        //Methods
-
-        //Method definitions
-        function activate() {
-        }
-
-        //Functions
-    }
-})();
-
-// Directives
-// ----------------------------------- 
-(function () {
-    'use strict';
-
-    angular
-        .module('giphyasm.search', [
-        ]);
-})();
-
-(function () {
-    'use strict';
-
-    angular
-        .module('giphyasm.search')
         .directive('asmSearchBar', asmSearchBar);
 
     asmSearchBar.$inject = ['$q'];
@@ -297,12 +237,11 @@
         return directive;
     }
 })();
-
 (function () {
     'use strict';
 
     angular
-        .module('giphyasm.search')
+        .module('giphyasm.home')
         .directive('asmSearchResults', asmSearchResults);
 
     asmSearchResults.$inject = ['$q'];
@@ -412,12 +351,11 @@
         return directive;
     }
 })();
-
 (function () {
     'use strict';
 
     angular
-        .module('giphyasm.search')
+        .module('giphyasm.home')
         .directive('asmTrendingResults', asmTrendingResults);
 
     asmTrendingResults.$inject = ['$q', 'GiphyService', 'CommonService'];
@@ -444,5 +382,33 @@
             }
         };
         return directive;
+    }
+})();
+(function () {
+    'use strict';
+
+    angular
+        .module('giphyasm.home')
+        .controller('MainController', MainController);
+
+    MainController.$inject = ['GiphyService', 'CommonService'];
+    function MainController(GiphyService, CommonService) {
+        var vm = this;
+
+        //Variables
+        vm.mySearch = {
+            query: '',
+            currentPage: 0
+        };
+
+        activate();
+
+        //Methods
+
+        //Method definitions
+        function activate() {
+        }
+
+        //Functions
     }
 })();
